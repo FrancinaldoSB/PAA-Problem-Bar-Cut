@@ -99,20 +99,56 @@ if __name__ == "__main__":
     print(f"Quantidade de cortes: {len(cortes_dinamico)}")
     print(f"Cortes otimos: {cortes_dinamico}")
     
-    input("Pressione qualquer tecla para continuar...")
+    input("Pressione para coletar a memória utilizada...")
     clear()
     
     print("MEMÓRIA")
-    mem_atual, mem_pico = coletar_memoria(corte_dinamico, precos, comp1)
+    mem_dinamico_atual, mem_dinamico_pico = coletar_memoria(corte_dinamico, precos, comp1)
+    mem_recursivo_atual, mem_recursivo_pico = coletar_memoria(corte_recursivo, precos, comp1)
+
     print("Dinamico:")
-    print(f"Memória atual: {mem_atual / 1024:.2f} KB")
-    print(f"Pico de memória: {mem_pico / 1024:.2f} KB")
-    mem_atual, mem_pico = coletar_memoria(corte_recursivo, precos, comp1)
+    print(f"Memória atual: {mem_dinamico_atual / 1024:.2f} KB")
+    print(f"Pico de memória: {mem_dinamico_pico / 1024:.2f} KB")
+
     print("\nRecursivo:")
-    print(f"Memória atual: {mem_atual / 1024:.2f} KB")
-    print(f"Pico de memória: {mem_pico / 1024:.2f} KB")
+    print(f"Memória atual: {mem_recursivo_atual / 1024:.2f} KB")
+    print(f"Pico de memória: {mem_recursivo_pico / 1024:.2f} KB")
+
+    # Plotando gráfico de barras de memória
+    memoria_labels = ['Memória atual', 'Memória de pico']
+    recursivo_memoria = [mem_recursivo_atual / 1024, mem_recursivo_pico / 1024]
+    dinamico_memoria = [mem_dinamico_atual / 1024, mem_dinamico_pico / 1024]
+
+    x = np.arange(len(memoria_labels))  # [0, 1]
+    largura = 0.35
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    palette = sns.color_palette("pastel", n_colors=2)
+
+    bars1 = ax.bar(x - largura/2, recursivo_memoria, largura, label='Recursivo', color=palette[0])
+    bars2 = ax.bar(x + largura/2, dinamico_memoria, largura, label='Dinâmico', color=palette[1])
+
+    ax.set_ylabel('Memória (KB)')
+    ax.set_title(f'Uso de memória por algoritmo (Comprimento {comp1})')
+    ax.set_xticks(x)
+    ax.set_xticklabels(memoria_labels)
+    ax.legend()
+    ax.grid(True, axis='y', linestyle='--', alpha=0.7)
+
+    for bars in [bars1, bars2]:
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f'{height:.2f}',
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3),
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+
+    plt.tight_layout()
+    plt.show()
     
-    input("Coletando tempos e plotando o gráfico...")
+    input("Pressiona para coletar os tempos e plotar o gráfico...")
     clear()
     
     print("\nGRÁFICOS")
@@ -126,29 +162,24 @@ if __name__ == "__main__":
 
     palette = sns.color_palette("pastel", n_colors=2)
 
-    # Paleta pastel do Seaborn
     palette = sns.color_palette("pastel", n_colors=2)
 
-    # Gerar o gráfico
     plt.figure(figsize=(10, 6))
 
     box = plt.boxplot(
         [tempos_recursivo_filtrados, tempos_dinamico_filtrados],
-        tick_labels=["Recursivo", "Dinâmico"],  # Corrigido de 'labels' para 'tick_labels'
+        tick_labels=["Recursivo", "Dinâmico"],
         patch_artist=True,
         showfliers=False
     )
 
-    # Pintar os boxes com cores pastéis
     for patch, color in zip(box['boxes'], palette):
         patch.set_facecolor(color)
 
-    # Pintar a linha da mediana de preto
     for median in box['medians']:
         median.set_color('black')
         median.set_linewidth(1)
 
-    # Estética
     plt.title(f"Boxplot dos tempos de execução (Comprimento {comp1})")
     plt.ylabel("Tempo (s)")
     plt.grid(True)
